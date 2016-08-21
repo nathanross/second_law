@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio, Child};
 use std::str::from_utf8;
 use std::ffi::OsStr;
-use std::rc::Rc;
+use std::sync::Arc;
 use std::borrow::Cow;
 use std::thread::sleep;
 use std::time::Duration;
@@ -53,7 +53,7 @@ static ALREADY_RUN: &'static str = " you have already run this UCommand, if you 
 static MULTIPLE_STDIN_MEANINGLESS: &'static str = "Ucommand is designed around a typical use case of: provide args and input stream -> spawn process -> block until completion -> return output streams. For verifying that a particular section of the input stream is what causes a particular behavior, use the Command type directly.";
 
 
-fn read_scenario_fixture<S: AsRef<OsStr>>(tmpd: &Option<Rc<TempDir>>, file_rel_path: S) -> String {
+fn read_scenario_fixture<S: AsRef<OsStr>>(tmpd: &Option<Arc<TempDir>>, file_rel_path: S) -> String {
     let tmpdir_path = tmpd.as_ref().unwrap().as_ref().path();
     AtPath::from_path(tmpdir_path).read(file_rel_path.as_ref().to_str().unwrap())
 }
@@ -70,7 +70,7 @@ pub fn repeat_str(s: &str, n: u32) -> String {
 /// within a struct which has convenience assertion functions about those outputs
 pub struct CmdResult {
     //tmpd is used for convenience functions for asserts against fixtures
-    tmpd: Option<Rc<TempDir>>,
+    tmpd: Option<Arc<TempDir>>,
     pub success: bool,
     pub stdout: String,
     pub stderr: String,
@@ -386,12 +386,12 @@ impl<'at> AtPath<'at> {
 pub struct TestScenario<'ts> {
     bin_path: PathBuf,
     util_name: &'ts OsStr,
-    tmpd: Rc<TempDir>,
+    tmpd: Arc<TempDir>,
 }
 
 impl<'ts> TestScenario<'ts> {
     pub fn new(util_name: &'ts OsStr) -> TestScenario<'ts> {
-        let tmpd = Rc::new(TempDir::new("uutils").unwrap());
+        let tmpd = Arc::new(TempDir::new("uutils").unwrap());
         let ts = TestScenario {
             bin_path: {
                 // Instead of hardcoding the path relative to the current
@@ -456,7 +456,7 @@ impl<'ts> TestScenario<'ts> {
 pub struct UCommand {
     pub raw: Command,
     comm_string: String,
-    tmpd: Option<Rc<TempDir>>,
+    tmpd: Option<Arc<TempDir>>,
     has_run: bool,
     stdin: Option<Vec<u8>>
 }
@@ -491,7 +491,7 @@ impl UCommand {
         }
     }
 
-    pub fn new_from_tmp<T: AsRef<OsStr>>(arg: T, tmpd: Rc<TempDir>, env_clear: bool) -> UCommand {
+    pub fn new_from_tmp<T: AsRef<OsStr>>(arg: T, tmpd: Arc<TempDir>, env_clear: bool) -> UCommand {
         let tmpd_path_buf = String::from(&(*tmpd.as_ref().path().to_str().unwrap()));
         let mut ucmd: UCommand = UCommand::new(arg.as_ref(), tmpd_path_buf, env_clear);
         ucmd.tmpd = Some(tmpd);
