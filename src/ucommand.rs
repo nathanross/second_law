@@ -10,7 +10,7 @@ use self::tempdir::TempDir;
 
 use super::cmdresult::CmdResult;
 use super::fixtures::read_scenario_fixture;
-use super::log_info;
+use super::common::log_info;
 
 static ALREADY_RUN: &'static str = " you have already run this UCommand, if you want to run \
                                     another command in the same test, use TestScenario::new instead of \

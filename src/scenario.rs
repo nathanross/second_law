@@ -9,7 +9,7 @@ use self::tempdir::TempDir;
 
 use super::atpath::AtPath;
 use super::ucommand::UCommand;
-use super::recursive_copy;
+use super::common::recursive_copy;
 
 //#[macro_export]
 macro_rules! path_concat {

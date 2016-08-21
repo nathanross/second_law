@@ -10,7 +10,7 @@ use std::os::unix::fs::symlink as symlink_file;
 #[cfg(windows)]
 use std::os::windows::fs::symlink_file;
 
-use super::log_info;
+use super::common::log_info;
 
 /// Object-oriented path struct that represents and operates on
 /// paths relative to the directory it was constructed for.
