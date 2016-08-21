@@ -13,6 +13,7 @@ use std::process::{Command, Stdio, Child};
 use std::str::from_utf8;
 use std::ffi::OsStr;
 use std::rc::Rc;
+use std::borrow::Cow;
 use std::thread::sleep;
 use std::time::Duration;
 use self::tempdir::TempDir;
@@ -26,7 +27,7 @@ macro_rules! path_concat {
         for _ in 0..n {
             pb.push($e);
         }
-        pb.to_str().unwrap().to_owned()
+        pb
     }};
     ($($e:expr),*) => {{
         use std::path::PathBuf;
@@ -34,7 +35,7 @@ macro_rules! path_concat {
         $(
             pb.push($e);
         )*
-        pb.to_str().unwrap().to_owned()
+        pb
     }};
 }
 
@@ -51,9 +52,10 @@ static ALREADY_RUN: &'static str = " you have already run this UCommand, if you 
                                     testing();";
 static MULTIPLE_STDIN_MEANINGLESS: &'static str = "Ucommand is designed around a typical use case of: provide args and input stream -> spawn process -> block until completion -> return output streams. For verifying that a particular section of the input stream is what causes a particular behavior, use the Command type directly.";
 
+
 fn read_scenario_fixture<S: AsRef<OsStr>>(tmpd: &Option<Rc<TempDir>>, file_rel_path: S) -> String {
     let tmpdir_path = tmpd.as_ref().unwrap().as_ref().path();
-    AtPath::new(tmpdir_path).read(file_rel_path.as_ref().to_str().unwrap())
+    AtPath::from_path(tmpdir_path).read(file_rel_path.as_ref().to_str().unwrap())
 }
 
 pub fn repeat_str(s: &str, n: u32) -> String {
@@ -202,21 +204,29 @@ pub fn get_root_path() -> &'static str {
 
 /// Object-oriented path struct that represents and operates on
 /// paths relative to the directory it was constructed for.
-pub struct AtPath {
-    pub subdir: PathBuf,
+pub struct AtPath<'at> {
+    pub subdir: Cow<'at, Path>,
 }
 
-impl AtPath {
-    pub fn new(subdir: &Path) -> AtPath {
-        AtPath { subdir: PathBuf::from(subdir) }
+impl<'at> AtPath<'at> {
+    pub fn from_osstr(subdir: &'at OsStr) -> AtPath<'at> {
+        AtPath { subdir: Cow::Borrowed(Path::new(subdir)) }
     }
 
+    pub fn from_path(subdir: &'at Path) -> AtPath<'at> {
+        AtPath { subdir: Cow::Borrowed(subdir) }
+    }
+
+    pub fn from_path_owned(subdir: PathBuf) -> AtPath<'at> {
+        AtPath { subdir : Cow::Owned(subdir) }
+    }
+    
     pub fn as_string(&self) -> String {
         self.subdir.to_str().unwrap().to_owned()
     }
 
     pub fn plus(&self, name: &str) -> PathBuf {
-        let mut pathbuf = self.subdir.clone();
+        let mut pathbuf = PathBuf::from(self.subdir.as_ref());
         pathbuf.push(name);
         pathbuf
     }
@@ -373,15 +383,14 @@ impl AtPath {
 /// 1. centralizes logic for locating the uutils binary and calling the utility
 /// 2. provides a temporary directory for the test case
 /// 3. copies over fixtures for the utility to the temporary directory
-pub struct TestScenario {
+pub struct TestScenario<'ts> {
     bin_path: PathBuf,
-    util_name: String,
-    pub fixtures: AtPath,
+    util_name: &'ts OsStr,
     tmpd: Rc<TempDir>,
 }
 
-impl TestScenario {
-    pub fn new(util_name: &str) -> TestScenario {
+impl<'ts> TestScenario<'ts> {
+    pub fn new(util_name: &'ts OsStr) -> TestScenario<'ts> {
         let tmpd = Rc::new(TempDir::new("uutils").unwrap());
         let ts = TestScenario {
             bin_path: {
@@ -389,10 +398,9 @@ impl TestScenario {
                 // directory, use Cargo's OUT_DIR to find path to executable.
                 // This allows tests to be run using profiles other than debug.
                 let target_dir = path_concat!(env::var("OUT_DIR").unwrap(), "..", "..", "..", PROGNAME);
-                PathBuf::from(AtPath::new(&Path::new(&target_dir)).root_dir_resolved())
+                PathBuf::from(AtPath::from_path(&target_dir).root_dir_resolved())
             },
-            util_name: String::from(util_name),
-            fixtures: AtPath::new(&tmpd.as_ref().path()),
+            util_name: util_name.as_ref(),
             tmpd: tmpd,
         };
         let mut fixture_path_builder = env::current_dir().unwrap();
@@ -401,13 +409,21 @@ impl TestScenario {
         fixture_path_builder.push(util_name);
         match fs::metadata(&fixture_path_builder) {
             Ok(m) => if m.is_dir() {
-                recursive_copy(&fixture_path_builder, &ts.fixtures.subdir).unwrap();
+                recursive_copy(&fixture_path_builder, ts.tmpd.as_ref().path()).unwrap();
             },
             Err(_) => {}
         }
         ts
     }
-
+    
+    pub fn fixtures<'tmpd>(&'tmpd self) -> AtPath<'tmpd> {
+        AtPath::from_path(self.tmpd.as_ref().path())
+    }
+    
+    pub fn fixtures_owned<'tmpd>(&self) -> AtPath<'tmpd> {
+        AtPath::from_path_owned(self.tmpd.as_ref().path().to_owned())
+    }    
+    
     pub fn ucmd(&self) -> UCommand {
         let mut cmd = self.cmd(&self.bin_path);
         cmd.arg(&self.util_name);
