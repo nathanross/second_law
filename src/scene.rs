@@ -44,16 +44,16 @@ static FIXTURES_DIR: &'static str = "fixtures";
 /// 1. centralizes logic for locating the uutils binary and calling the utility
 /// 2. provides a temporary directory for the test case
 /// 3. copies over fixtures for the utility to the temporary directory
-pub struct Scenario<'ts> {
+pub struct Scene<'ts> {
     bin_path: PathBuf,
     util_name: &'ts OsStr,
     tmpd: Arc<TempDir>,
 }
 
-impl<'ts> Scenario<'ts> {
-    pub fn new(util_name: &'ts OsStr) -> Scenario<'ts> {
+impl<'ts> Scene<'ts> {
+    pub fn new(util_name: &'ts OsStr) -> Scene<'ts> {
         let tmpd = Arc::new(TempDir::new("uutils").unwrap());
-        let ts = Scenario {
+        let ts = Scene {
             bin_path: {
                 // Instead of hardcoding the path relative to the current
                 // directory, use Cargo's OUT_DIR to find path to executable.
