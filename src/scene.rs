@@ -193,8 +193,11 @@ impl Scene {
                 // Instead of hardcoding the path relative to the current
                 // directory, use Cargo's OUT_DIR to find path to executable.
                 // This allows tests to be run using profiles other than debug.
-                let mut target_dir = PathBuf::from(path_concat!(
-                    env::var("OUT_DIR").expect("expected a cargo out dir environment variable"), "..", "..", ".."));
+                let mut target_dir = PathBuf::from(
+                    env::var("OUT_DIR").expect("expected a cargo out dir environment variable"));
+                target_dir.pop();
+                target_dir.pop();
+                target_dir.pop();                
                 target_dir.push(
                     builder.debug_bin_subpath.as_ref().unwrap().clone()
                 );
