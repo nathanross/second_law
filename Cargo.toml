@@ -1,6 +1,6 @@
 [package]
 name = "second_law"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Nathan Ross <nross.se@gmail.com>"]
 description = "A binary integration test swiss army knife, compatible with Stainless"
 homepage = "https://github.com/nathanross/second_law"
