@@ -4,11 +4,48 @@
 
 > Second law of Asimov's Three laws of robotics.
 
-Second Law is a swiss army knife for writing naturally-reading integration tests for your rust binaries. Second Law handles the boilerplate that would otherwise crowd a consistent, easily-debugged binary test, and provides a calling and assertion syntax that is intuitively understandable.
+Second Law is what you should use for calling your binaries (instead of calling proccess::Command directly) in your binary integration tests, and for asserting over their output streams, exit code, and filesystem side-effects.
+
+Second law provides a calling and assertion syntax that is intuitively understandable, and makes the actual content of your tests the focus by moving all the boilerplate necessary for a cross-platform consistent, debuggable binary test into the background. 
+
+### Naturally readable tests
+
+The test case messages of this integration test have been hidden. Can you summarize what the binary is required to do?
+
+(This example uses Stainless, there is an equivalent vanilla test here)
+
+```rust
+#![feature(plugin)]
+#![cfg_attr(test, plugin(stainless))]
+
+#[macro_use]
+extern crate second_law;
+
+describe! <hidden> {
+    before_each {
+        let mut ucmd = new_scene!().ucmd();
+    }
+
+    it <hidden> {
+        ucmd.arg("2").arg("3").succeeds().stdout_only("5");
+    }
+
+    it <hidden> {
+        ucmd.arg("2").arg("0").succeeds().stdout_only("2");        
+    }
+
+    it <hidden> {
+        ucmd.succeeds().stdout_only("0");        
+    }
+
+    it <hidden> {
+        ucmd.arg("2").arg("three").fails().stderr_only("failure: could not parse argument 'three'");
+    }
+}
+```
+
 
 ### Where/How would I use this?
-
-Second Law is what you should use for calling your binaries (instead of calling proccess::Command directly) in your binary integration tests and asserting over their output streams, exit code, and filesystem side-effects.
 
 Second Law can be used independently, or as a complement to test harnesses and frameworks like stainless.
 
@@ -17,7 +54,6 @@ Second Law can be used independently, or as a complement to test harnesses and f
 **naturally reading**
 
 * piping in stdin is as easy as ```.pipe_in("hello world")``` - it accepts any value that can be converted into a byte array.
-* no ambiguity about what output stream is being asserted over. The stream the value is being tested against is right there in the name
 
 **Fixtures without boilerplate**
 
