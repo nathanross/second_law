@@ -1,8 +1,8 @@
 # Second Law
 
- "A robot must obey the orders given it by human beings except where such orders would conflict with the First Law."
+> "A robot must obey the orders given it by human beings except where such orders would conflict with the First Law."
 
- Second law of Asimov's Three laws of robotics.
+> Second law of Asimov's Three laws of robotics.
 
 Second Law is a swiss army knife for writing naturally-reading integration tests for your rust binaries. Second Law handles the boilerplate that would otherwise crowd a consistent, easily-debugged binary test, and provides a calling and assertion syntax that is intuitively understandable.
 
