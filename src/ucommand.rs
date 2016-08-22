@@ -1,20 +1,18 @@
-extern crate tempdir;
-
 use std::env;
 use std::ffi::OsStr;
 use std::io::Write;
 use std::process::{Command, Stdio, Child};
 use std::str::from_utf8;
 use std::sync::Arc;
-use self::tempdir::TempDir;
+use std::path::PathBuf;
 
 use super::cmdresult::CmdResult;
 use super::fixtures::read_scenario_fixture;
 use super::common::log_info;
+use super::settings::SceneSettings;
 
-static ALREADY_RUN: &'static str = " you have already run this UCommand, if you want to run \
-                                    another command in the same test, use TestScenario::new instead of \
-                                    testing();";
+static ALREADY_RUN: &'static str = "you have already run this UCommand, if you want to run \
+                                    another command in the same test, use scene.ucmd()";
 static MULTIPLE_STDIN_MEANINGLESS: &'static str = "Ucommand is designed around a typical use case of: provide args and input stream -> spawn process -> block until completion -> return output streams. For verifying that a particular section of the input stream is what causes a particular behavior, use the Command type directly.";
 
 /// A UCommand is a wrapper around an individual Command that provides several additional features
@@ -26,19 +24,30 @@ static MULTIPLE_STDIN_MEANINGLESS: &'static str = "Ucommand is designed around a
 pub struct UCommand {
     pub raw: Command,
     comm_string: String,
-    tmpd: Option<Arc<TempDir>>,
+    settings: Arc<SceneSettings>,
     has_run: bool,
     stdin: Option<Vec<u8>>
 }
 
 impl UCommand {
-    pub fn new<T: AsRef<OsStr>, U: AsRef<OsStr>>(arg: T, curdir: U, env_clear: bool) -> UCommand {
+    pub fn new<T: AsRef<OsStr>, U: AsRef<OsStr>>(
+        invoked: T,
+        settings: Arc<SceneSettings>,
+        env_clear: bool,
+        curdir: Option<U>
+    ) -> UCommand {
+        let curdir_used = if let Some(curdir_val) = curdir {
+            PathBuf::from(&curdir_val.as_ref())
+        } else {
+            PathBuf::from(settings.as_ref().tmpd.path())
+        };
+//        let  = String::from(&(*tmpd.as_ref().path().to_str().unwrap()));
         UCommand {
-            tmpd: None,
+            settings: settings,
             has_run: false,
             raw: {
-                let mut cmd = Command::new(arg.as_ref());
-                cmd.current_dir(curdir.as_ref());
+                let mut cmd = Command::new(invoked.as_ref());
+                cmd.current_dir(&curdir_used);
                 if env_clear {
                     if cfg!(windows) {
                         // %SYSTEMROOT% is required on Windows to initialize crypto provider
@@ -56,16 +65,9 @@ impl UCommand {
                 }
                 cmd
             },
-            comm_string: String::from(arg.as_ref().to_str().unwrap()),
+            comm_string: String::from(invoked.as_ref().to_str().unwrap()),
             stdin: None
         }
-    }
-
-    pub fn new_from_tmp<T: AsRef<OsStr>>(arg: T, tmpd: Arc<TempDir>, env_clear: bool) -> UCommand {
-        let tmpd_path_buf = String::from(&(*tmpd.as_ref().path().to_str().unwrap()));
-        let mut ucmd: UCommand = UCommand::new(arg.as_ref(), tmpd_path_buf, env_clear);
-        ucmd.tmpd = Some(tmpd);
-        ucmd
     }
 
     pub fn arg<S: AsRef<OsStr>>(&mut self, arg: S) -> Box<&mut UCommand> {
@@ -80,7 +82,7 @@ impl UCommand {
 
     /// like arg(...), but uses the contents of the file at the provided relative path as the argument
     pub fn arg_fixture<S: AsRef<OsStr>>(&mut self, file_rel_path: S) -> Box<&mut UCommand> {
-        let contents = read_scenario_fixture(&self.tmpd, file_rel_path);
+        let contents = read_scenario_fixture(&self.settings, file_rel_path);
         self.arg(contents)
     }
 
@@ -108,7 +110,7 @@ impl UCommand {
 
     /// like pipe_in(...), but uses the contents of the file at the provided relative path as the piped in data
     pub fn pipe_in_fixture<S: AsRef<OsStr>>(&mut self, file_rel_path: S) -> Box<&mut UCommand> {
-        let contents = read_scenario_fixture(&self.tmpd, file_rel_path);
+        let contents = read_scenario_fixture(&self.settings, file_rel_path);
         self.pipe_in(contents)
     }
 
@@ -155,7 +157,7 @@ impl UCommand {
         let prog = self.run_no_wait().wait_with_output().unwrap();
 
         CmdResult {
-            tmpd: self.tmpd.clone(),
+            settings: self.settings.clone(),
             success: prog.status.success(),
             stdout: from_utf8(&prog.stdout).unwrap().to_string(),
             stderr: from_utf8(&prog.stderr).unwrap().to_string(),

@@ -3,15 +3,14 @@ extern crate tempdir;
 use std::ffi::OsStr;
 use std::sync::Arc;
 
-use self::tempdir::TempDir;
-
 use super::fixtures::read_scenario_fixture;
+use super::settings::SceneSettings;
 
 /// A command result is the outputs of a command (streams and status code)
 /// within a struct which has convenience assertion functions about those outputs
 pub struct CmdResult {
     //tmpd is used for convenience functions for asserts against fixtures
-    pub tmpd: Option<Arc<TempDir>>,
+    pub settings: Arc<SceneSettings>,
     pub success: bool,
     pub stdout: String,
     pub stderr: String,
@@ -61,7 +60,7 @@ impl CmdResult {
 
     /// like stdout_is(...), but expects the contents of the file at the provided relative path
     pub fn stdout_is_fixture<T: AsRef<OsStr>>(&self, file_rel_path: T) -> Box<&CmdResult> {
-        let contents = read_scenario_fixture(&self.tmpd, file_rel_path);
+        let contents = read_scenario_fixture(&self.settings, file_rel_path);
         self.stdout_is(contents)
     }
 
@@ -75,7 +74,7 @@ impl CmdResult {
 
     /// like stderr_is(...), but expects the contents of the file at the provided relative path
     pub fn stderr_is_fixture<T: AsRef<OsStr>>(&self, file_rel_path: T) -> Box<&CmdResult> {
-        let contents = read_scenario_fixture(&self.tmpd, file_rel_path);
+        let contents = read_scenario_fixture(&self.settings, file_rel_path);
         self.stderr_is(contents)
     }
 
@@ -89,7 +88,7 @@ impl CmdResult {
 
     /// like stdout_only(...), but expects the contents of the file at the provided relative path
     pub fn stdout_only_fixture<T: AsRef<OsStr>>(&self, file_rel_path: T) -> Box<&CmdResult> {
-        let contents = read_scenario_fixture(&self.tmpd, file_rel_path);
+        let contents = read_scenario_fixture(&self.settings, file_rel_path);
         self.stdout_only(contents)
     }
 
@@ -103,7 +102,7 @@ impl CmdResult {
 
     /// like stderr_only(...), but expects the contents of the file at the provided relative path
     pub fn stderr_only_fixture<T: AsRef<OsStr>>(&self, file_rel_path: T) -> Box<&CmdResult> {
-        let contents = read_scenario_fixture(&self.tmpd, file_rel_path);
+        let contents = read_scenario_fixture(&self.settings, file_rel_path);
         self.stderr_only(contents)
     }
 
