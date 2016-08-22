@@ -34,7 +34,6 @@ macro_rules! path_concat {
 }
 
 static DEFAULT_FIXTURES_ROOT: &'static str = "tests/fixtures";
-static BIN_SUBPATH_MAX_ONCE: &'static str = "the bin subpath can only be set once per scene";
 static ROOT_CALLED_MAX_ONCE: &'static str = "the fixture root can only be set once. To add subdirectories in multiple steps, use .fixtures_subdir(:&Path)";
 static ALREADY_INSTANTIATED: &'static str = "configuration of a scene must be done before the first call to its .cmd() or .ucmd()";
 
@@ -61,27 +60,16 @@ pub struct Scene {
 }
 impl Scene {
 
-    pub fn new() -> Scene {
+    pub fn new<P: AsRef<Path>>(bin_subpath : P) -> Scene {
         Scene {
             builder : Some(SceneBuilder {
-                debug_bin_subpath: None,
+                debug_bin_subpath: Some(PathBuf::from(bin_subpath.as_ref())),
                 fixtroot_fixture_subpath: None,
                 repo_fixtroot_subpath: None,
                 subcmd_args: None,
                 multicall: None
             }),
             setting : None
-        }
-    }
-
-    pub fn bin_subpath<P: AsRef<Path>>(&mut self, subpath : P) {
-        if let Some(ref mut builder) = self.builder {
-            if builder.debug_bin_subpath.is_some() {
-                panic!(BIN_SUBPATH_MAX_ONCE);
-            }
-            builder.debug_bin_subpath = Some(PathBuf::from(subpath.as_ref()));
-        } else {
-            panic!(ALREADY_INSTANTIATED);
         }
     }
 
@@ -208,11 +196,7 @@ impl Scene {
                 let mut target_dir = PathBuf::from(path_concat!(
                     env::var("OUT_DIR").expect("expected a cargo out dir environment variable"), "..", "..", ".."));
                 target_dir.push(
-                    if let Some(ref bin_subpath) = builder.debug_bin_subpath {
-                        bin_subpath.clone()
-                    } else {
-                        PathBuf::from(env!("CARGO_PKG_NAME"))
-                    }
+                    builder.debug_bin_subpath.as_ref().unwrap().clone()
                 );
                 PathBuf::from(AtPath::from_path_owned(target_dir).root_dir_resolved())
             },

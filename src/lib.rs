@@ -11,3 +11,11 @@ pub use ucommand::UCommand;
 pub use scene::Scene;
 pub use cmdresult::CmdResult;
 
+
+#[macro_export]
+macro_rules! new_scene {
+    () => ({
+        use second_law;
+        second_law::Scene::new(env!("CARGO_PKG_NAME"))
+    });
+}
