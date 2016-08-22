@@ -145,7 +145,7 @@ impl Scene {
     }
     
     pub fn ucmd(&mut self) -> UCommand {
-        let settings = self.setting.as_ref().unwrap().clone();
+        let settings = self.cloned_setting();
         let mut cmd = self.cmd(&settings.as_ref().debug_bin_path);
         cmd.args(&settings.as_ref().subcmd_args);
         cmd
@@ -160,7 +160,7 @@ impl Scene {
     // different names are used rather than an argument
     // because the need to keep the environment is exceedingly rare.
     pub fn ucmd_keepenv(&mut self) -> UCommand {
-        let settings = self.setting.as_ref().unwrap().clone();
+        let settings = self.cloned_setting();
         let mut cmd = self.cmd_keepenv(&settings.as_ref().debug_bin_path);
         cmd.args(&settings.as_ref().subcmd_args);
         cmd
