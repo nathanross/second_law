@@ -4,6 +4,7 @@ use std::ffi::OsStr;
 use std::fs::{self, File, OpenOptions};
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 #[cfg(unix)]
 use std::os::unix::fs::symlink as symlink_file;
@@ -11,24 +12,35 @@ use std::os::unix::fs::symlink as symlink_file;
 use std::os::windows::fs::symlink_file;
 
 use super::common::log_info;
+use super::settings::SceneSettings;
 
 /// Object-oriented path struct that represents and operates on
 /// paths relative to the directory it was constructed for.
+
+//todo switch to using an enum so using Arc if provided
+#[allow(dead_code)]
 pub struct AtPath<'at> {
     pub subdir: Cow<'at, Path>,
+    settings: Option<Arc<SceneSettings>>
 }
 
 impl<'at> AtPath<'at> {
     pub fn from_osstr(subdir: &'at OsStr) -> AtPath<'at> {
-        AtPath { subdir: Cow::Borrowed(Path::new(subdir)) }
+        AtPath { subdir: Cow::Borrowed(Path::new(subdir)), settings: None }
     }
 
     pub fn from_path(subdir: &'at Path) -> AtPath<'at> {
-        AtPath { subdir: Cow::Borrowed(subdir) }
+        AtPath { subdir: Cow::Borrowed(subdir), settings: None }
     }
 
     pub fn from_path_owned(subdir: PathBuf) -> AtPath<'at> {
-        AtPath { subdir : Cow::Owned(subdir) }
+        AtPath { subdir : Cow::Owned(subdir), settings: None }
+    }
+
+    // if we're using the tmpdir, even if ucommands and the scenario have dropped out of scope
+    // we want a reference to remain to it, at least if this is created by the idiomatic approach
+    pub fn from_scene_settings(settings: Arc<SceneSettings>) -> AtPath<'at> {
+        AtPath { subdir : Cow::Owned(PathBuf::from(settings.as_ref().tmpd.path())), settings: Some(settings)}
     }
     
     pub fn as_string(&self) -> String {

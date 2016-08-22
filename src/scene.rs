@@ -165,6 +165,11 @@ impl Scene {
         let curdir : Option<&OsStr>  = None;
         UCommand::new(bin, setting, false, curdir)
     }
+
+    pub fn working_dir(&mut self) -> AtPath {
+        let setting = self.cloned_setting();
+        AtPath::from_scene_settings(setting)
+    }
     
     fn cloned_setting(&mut self) -> Arc<SceneSettings> {
         if let Some(ref setting) = self.setting {
