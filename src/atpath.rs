@@ -171,7 +171,8 @@ impl<'at> AtPath<'at> {
 
     pub fn root_dir_resolved(&self) -> String {
         log_info("current_directory_resolved", "");
-        let s = self.subdir.canonicalize().unwrap().to_str().unwrap().to_owned();
+        let canon_failure_msg = format!("asked to canonicalize {:?} but failed", self.subdir);
+        let s = self.subdir.canonicalize().expect(&canon_failure_msg).to_str().unwrap().to_owned();
 
         // Due to canonicalize()'s use of GetFinalPathNameByHandleW() on Windows, the resolved path
         // starts with '\\?\' to extend the limit of a given path to 32,767 wide characters.
