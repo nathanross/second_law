@@ -12,20 +12,9 @@ Second law provides a calling and assertion syntax that is intuitively understan
 
 The test case messages of this integration test have been hidden. Can you summarize what the binary is required to do?
 
-(This example uses Stainless, there is an equivalent vanilla test here)
+(This example is a snippet of a Stainless test, there is an equivalent vanilla test here)
 
 ```rust
-#![feature(plugin)]
-#![cfg_attr(test, plugin(stainless))]
-
-#[macro_use]
-extern crate second_law;
-
-describe! <hidden> {
-    before_each {
-        let mut ucmd = new_scene!().ucmd();
-    }
-
     it <hidden> {
         ucmd.arg("2").arg("3").succeeds().stdout_only("5");
     }
@@ -41,7 +30,6 @@ describe! <hidden> {
     it <hidden> {
         ucmd.arg("2").arg("three").fails().stderr_only("failure: could not parse argument 'three'");
     }
-}
 ```
 
 
