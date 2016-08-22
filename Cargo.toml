@@ -11,4 +11,4 @@ include = [
 ]
 
 [dependencies]
-tempdir = "*"
+tempdir = "0.3"
