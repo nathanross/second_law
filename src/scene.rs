@@ -7,6 +7,7 @@ use std::path::{Path,PathBuf};
 use std::sync::Arc;
 use self::tempdir::TempDir;
 
+use super::atpath::AtPath;
 use super::ucommand::UCommand;
 use super::common::recursive_copy;
 use super::settings::SceneSettings;
@@ -213,7 +214,7 @@ impl Scene {
                         PathBuf::from(env!("CARGO_PKG_NAME"))
                     }
                 );
-                target_dir
+                PathBuf::from(AtPath::from_path_owned(target_dir).root_dir_resolved())
             },
             repo_fixtures_path: {
                 let mut repo_fixtures_subpath = {
@@ -229,7 +230,8 @@ impl Scene {
                 if let Some(ref fixtroot_fixture_subpath) = builder.fixtroot_fixture_subpath {
                     repo_fixtures_subpath.push(fixtroot_fixture_subpath);
                 };
-                repo_fixtures_subpath
+                
+                PathBuf::from(AtPath::from_path_owned(repo_fixtures_subpath).root_dir_resolved())
             },
             subcmd_args: {
                 let mut result = if let Some(ref subcmd_args) = builder.subcmd_args {
