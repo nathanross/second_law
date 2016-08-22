@@ -135,7 +135,7 @@ impl UCommand {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .unwrap();
+            .expect("There was an error running the provided command. Run cargo test with --verbose to see which command caused the failure");
 
         if let Some(ref input) = self.stdin {
             result.stdin
