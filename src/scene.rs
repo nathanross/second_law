@@ -177,16 +177,16 @@ impl Scene {
             setting.clone()
         } else {
             {
-                let builder = self.builder.as_ref().unwrap();
+                let builder = self.builder.as_ref().expect("tried to retrieve builder but could not");
                 let result = Arc::new(self.generate_setting(&builder));
                 {
                     let fixtures_path = &result.as_ref().repo_fixtures_path;
                     match fs::metadata(fixtures_path) {
                         Ok(m) => if m.is_dir() {
-                            recursive_copy(fixtures_path, result.as_ref().tmpd.path()).unwrap();
+                            recursive_copy(fixtures_path, result.as_ref().tmpd.path()).expect("tried to recursively copy fixtures to tmp dir but failed");
                         },
                         Err(_) => {
-                            panic!("error copying to fixtures directory {}. Are you sure it exists?", fixtures_path.to_str().unwrap());
+                            panic!("error copying to fixtures directory {}. Are you sure it exists?", fixtures_path.to_str().expect("tried to get provided fixtures path as a string but failed"));
                         }
                     }
                 }
@@ -205,7 +205,7 @@ impl Scene {
                 // directory, use Cargo's OUT_DIR to find path to executable.
                 // This allows tests to be run using profiles other than debug.
                 let mut target_dir = PathBuf::from(path_concat!(
-                    env::var("OUT_DIR").unwrap(), "..", "..", ".."));
+                    env::var("OUT_DIR").expect("expected a cargo out dir environment variable"), "..", "..", ".."));
                 target_dir.push(
                     if let Some(ref bin_subpath) = builder.debug_bin_subpath {
                         bin_subpath.clone()
@@ -242,7 +242,7 @@ impl Scene {
                 };
                 result
             },
-            tmpd: TempDir::new("second_law").unwrap()
+            tmpd: TempDir::new("second_law").expect("tried to create a temporary directory but failed")
         }
     }
 }
