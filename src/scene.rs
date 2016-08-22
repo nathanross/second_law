@@ -73,7 +73,7 @@ impl Scene {
         }
     }
 
-    pub fn fixtures_root<P: AsRef<Path>>(&mut self, root : P) {
+    pub fn fixtures_root<'a, P: AsRef<Path>>(&'a mut self, root : P) -> &'a Scene {
         if let Some(ref mut builder) = self.builder {
             if builder.repo_fixtroot_subpath.is_some() {
                 panic!(ROOT_CALLED_MAX_ONCE);
@@ -82,9 +82,10 @@ impl Scene {
         } else {
             panic!(ALREADY_INSTANTIATED);
         }
+        self
     }
 
-    pub fn fixtures_subdir<P: AsRef<Path>>(&mut self, subdirs : P) {
+    pub fn fixtures_subdir<'a, P: AsRef<Path>>(&'a mut self, subdirs : P) -> &'a Scene {
         if let Some(ref mut builder) = self.builder {
             if let Some(ref mut fixtroot_fixture_subpath) = builder.fixtroot_fixture_subpath {
                 fixtroot_fixture_subpath.push(subdirs.as_ref());
@@ -94,14 +95,16 @@ impl Scene {
         } else {
             panic!(ALREADY_INSTANTIATED);
         }
+        self
     }
 
-    pub fn multicall<S: AsRef<OsStr>>(&mut self, subcmd_arg : S) {
+    pub fn multicall<'a, S: AsRef<OsStr>>(&'a mut self, subcmd_arg : S) -> &'a Scene {
         self.fixtures_subdir(Path::new(subcmd_arg.as_ref()));
         self.subcmd_arg(subcmd_arg.as_ref());
+        self
     }
 
-    pub fn subcmd_arg<S: AsRef<OsStr>>(&mut self, added_arg : S) {
+    pub fn subcmd_arg<'a, S: AsRef<OsStr>>(&'a mut self, added_arg : S) -> &'a Scene {
         if let Some(ref mut builder) = self.builder {
             if let Some(ref mut current_value) = builder.subcmd_args {
                 current_value.push(OsString::from(added_arg.as_ref()));
@@ -113,9 +116,10 @@ impl Scene {
         } else {
             panic!(ALREADY_INSTANTIATED);
         }
+        self
     }
 
-    pub fn subcmd_args<S: AsRef<OsStr>>(&mut self, added_args : &[S]) {
+    pub fn subcmd_args<'a, S: AsRef<OsStr>>(&'a mut self, added_args : &[S]) -> &'a Scene {
         if let Some(ref mut builder) = self.builder {
             if let Some(ref mut current_value) = builder.subcmd_args {
                 for val in added_args.iter() {
@@ -131,6 +135,7 @@ impl Scene {
         } else {
             panic!(ALREADY_INSTANTIATED);
         }
+        self
     }
     
     pub fn ucmd(&mut self) -> UCommand {
