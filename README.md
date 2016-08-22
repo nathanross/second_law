@@ -26,19 +26,19 @@ describe! <hidden> {
         let mut ucmd = new_scene!().ucmd();
     }
 
-    it <hidden> {
+    it "should <hidden>" {
         ucmd.arg("2").arg("3").succeeds().stdout_only("5");
     }
 
-    it <hidden> {
+    it "should <hidden>" {
         ucmd.arg("2").arg("0").succeeds().stdout_only("2");        
     }
 
-    it <hidden> {
+    it "should <hidden>" {
         ucmd.succeeds().stdout_only("0");        
     }
 
-    it <hidden> {
+    it "should <hidden>" {
         ucmd.arg("2").arg("three").fails().stderr_only("failure: could not parse argument 'three'");
     }
 }
