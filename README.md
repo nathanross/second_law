@@ -12,7 +12,7 @@ Second law provides a calling and assertion syntax that is intuitively understan
 
 The test case messages of this integration test have been hidden. Can you summarize what the binary is required to do?
 
-(This example is a snippet of a Stainless test, there is an equivalent vanilla test here)
+(This example is an actual Stainless test you can run in one of the [example packages](https://github.com/nathanross/second_law/tree/master/examples/01-simple), there is an equivalent [vanilla (non-stainless) test](https://github.com/nathanross/second_law/blob/master/examples/01-simple/tests/test_basic.rs) in that package as well)
 
 ```rust
 #![feature(plugin)]
