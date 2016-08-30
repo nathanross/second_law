@@ -1,0 +1,8 @@
+[package]
+name = "sum"
+version = "0.1.0"
+authors = ["Nathan Ross <nross.se@gmail.com>"]
+
+[dev-dependencies]
+second_law = "0.2"
+stainless = "0.1"
