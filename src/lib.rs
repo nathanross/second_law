@@ -16,6 +16,10 @@ pub use cmdresult::CmdResult;
 macro_rules! new_scene {
     () => ({
         use second_law;
-        second_law::Scene::new(env!("CARGO_PKG_NAME"))
+        if cfg!(target_os = "windows") {
+            second_law::Scene::new(format!("{}.exe", env!("CARGO_PKG_NAME")))
+        } else {
+            second_law::Scene::new(env!("CARGO_PKG_NAME"))
+        }
     });
 }
