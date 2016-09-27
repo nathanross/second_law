@@ -44,34 +44,29 @@ describe! <hidden> {
 }
 ```
 
-
-### Where/How would I use this?
-
-Second Law can be used independently, or as a complement to test harnesses and frameworks like stainless.
-
-### Features
-
-**naturally reading**
-
-* piping in stdin is as easy as ```.pipe_in("hello world")``` - it accepts any value that can be converted into a byte array.
-
-**Fixtures without boilerplate**
+### Fixtures without boilerplate
 
 * built-in support for fixtures (data files for your tests) in your tests.
 
-**subcommand support without boilerplate:**
+### Subcommand support without boilerplate:
 
 * First class support for subcommands
 
-**consistency without boilerplate:**
+### consistency without boilerplate:
 
 * By-default (but optional) clearing of the environment and use of temporary directories
 * Provides an object-oriented path class to enable filesystem operations within this temporary directory.
 * multiple commands can be run in this temporary directory.
 
-**easy debugging without boilerplate:**
+### easy debugging without boilerplate:
 
 * If your test case includes multiple, dynamic calls, assertion failures will display the exact command being tested that failed.
+
+## FAQ
+
+### Where/How would I use this?
+
+Second Law can be used independently, or as a complement to test harnesses and frameworks like stainless.
 
 ### Design goals
 
