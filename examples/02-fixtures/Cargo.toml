@@ -1,5 +1,5 @@
 [package]
-name = "sum"
+name = "average"
 version = "0.1.0"
 authors = ["Nathan Ross <nross.se@gmail.com>"]
 

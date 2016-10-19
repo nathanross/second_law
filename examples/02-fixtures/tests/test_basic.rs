@@ -6,22 +6,22 @@ fn new_ucmd() -> second_law::UCommand {
 }
 
 #[test]
-fn sum_adds_numbers() {
-    new_ucmd().arg("1").arg("2").succeeds().stdout_only("3");
+fn average_ignores_newlines() {
+    new_ucmd().arg("newlines.txt").succeeds().stdout_only("20");
 }
 
 #[test]
-fn sum_works_with_zero() {
-    new_ucmd().arg("2").arg("0").succeeds().stdout_only("2");
+fn average_single_numbers() {
+    new_ucmd().arg("one_number.txt").succeeds().stdout_only("10");
 }
 
 #[test]
-fn sum_no_args_returns_zero() {
-    new_ucmd().succeeds().stdout_only("0");
+fn average_many_numbers() {
+    new_ucmd().arg("many_numbers.txt").succeeds().stdout_only("20");
 }
 
 #[test]
-fn sum_error_non_numeric() {
-    new_ucmd().arg("2").arg("three").fails().stderr_only("failure: could not parse argument 'three'");
+fn average_empty_file() {
+    new_ucmd().arg("empty.text").fails().stderr_only("failure: this file has no number lines'");
 }
 
