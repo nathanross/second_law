@@ -6,7 +6,7 @@ use self::tempdir::TempDir;
 
 pub struct SceneSettings {
     pub debug_bin_path: PathBuf,
-    pub repo_fixtures_path: PathBuf,
+    pub repo_fixtures_path: Option<PathBuf>,
     pub subcmd_args: Vec<OsString>,
     pub tmpd: TempDir,
 }
