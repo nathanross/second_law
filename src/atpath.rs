@@ -181,23 +181,33 @@ impl<'at> AtPath<'at> {
         self.subdir.to_str().unwrap().to_owned()
     }
 
-    pub fn root_dir_resolved(&self) -> String {
+    pub fn root_dir_resolved(&self) -> Option<String> {
         log_info("current_directory_resolved", "");
-        let canon_failure_msg = format!("asked to canonicalize {:?} but failed", self.subdir);
-        let s = self.subdir.canonicalize().expect(&canon_failure_msg).to_str().unwrap().to_owned();
-
-        // Due to canonicalize()'s use of GetFinalPathNameByHandleW() on Windows, the resolved path
-        // starts with '\\?\' to extend the limit of a given path to 32,767 wide characters.
-        //
-        // To address this issue, we remove this prepended string if available.
-        //
-        // Source:
-        // http://stackoverflow.com/questions/31439011/getfinalpathnamebyhandle-without-prepended
-        let prefix = "\\\\?\\";
-        if s.starts_with(prefix) {
-            String::from(&s[prefix.len()..])
-        } else {
-            s
+        let c = self.subdir.canonicalize();
+        match c {
+            Result::Err(_) => None,
+            Result::Ok(x) => {
+                match x.to_str() {
+                    None => None,
+                    Some(sb) => Some({
+                        let s = sb.to_owned();
+                        // Due to canonicalize()'s use of GetFinalPathNameByHandleW() on Windows, the resolved path
+                        // starts with '\\?\' to extend the limit of a given path to 32,767 wide characters.
+                        //
+                        // To address this issue, we remove this prepended string if available.
+                        //
+                        // Source:
+                        // http://stackoverflow.com/questions/31439011/getfinalpathnamebyhandle-without-prepended
+                        let prefix = "\\\\?\\";
+                        if s.starts_with(prefix) {
+                            String::from(&s[prefix.len()..])
+                        } else {
+                            s
+                        }
+                    })
+                }
+            }
         }
+
     }
 }

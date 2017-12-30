@@ -179,13 +179,17 @@ impl Scene {
                 let builder = self.builder.as_ref().expect("tried to retrieve builder but could not");
                 let result = Arc::new(self.generate_setting(&builder));
                 {
-                    let fixtures_path = &result.as_ref().repo_fixtures_path;
-                    match fs::metadata(fixtures_path) {
-                        Ok(m) => if m.is_dir() {
-                            recursive_copy(fixtures_path, result.as_ref().tmpd.path()).expect("tried to recursively copy fixtures to tmp dir but failed");
-                        },
-                        Err(_) => {
-                            panic!("error copying to fixtures directory {}. Are you sure it exists?", fixtures_path.to_str().expect("tried to get provided fixtures path as a string but failed"));
+                    match &result.as_ref().repo_fixtures_path {
+                        &None => {},
+                        &Some(ref fixtures_path) => {
+                            match fs::metadata(&fixtures_path) {
+                                Ok(m) => if m.is_dir() {
+                                    recursive_copy(&fixtures_path, result.as_ref().tmpd.path()).expect("tried to recursively copy fixtures to tmp dir but failed");
+                                },
+                                Err(_) => {
+                                    panic!("error copying to fixtures directory {}. Are you sure it exists?", fixtures_path.to_str().expect("tried to get provided fixtures path as a string but failed"));
+                                }
+                            }
                         }
                     }
                 }
@@ -203,15 +207,14 @@ impl Scene {
                 // Instead of hardcoding the path relative to the current
                 // directory, use Cargo's OUT_DIR to find path to executable.
                 // This allows tests to be run using profiles other than debug.
-                let mut target_dir = PathBuf::from(
-                    env::var("OUT_DIR").expect("expected a cargo out dir environment variable"));
-                target_dir.pop();
-                target_dir.pop();
-                target_dir.pop();                
+                let environment_string = env::var("LD_LIBRARY_PATH").expect("this environment variable is depended upon to find the executable path");
+                let library_path_split : Vec<&str> = environment_string.split(":").collect();
+                println!("{}", library_path_split[0]);
+                let mut target_dir = PathBuf::from(library_path_split[0]);
                 target_dir.push(
                     builder.debug_bin_subpath.as_ref().unwrap().clone()
                 );
-                PathBuf::from(AtPath::from_path_owned(target_dir).root_dir_resolved())
+                PathBuf::from(AtPath::from_path_owned(target_dir).root_dir_resolved().unwrap())
             },
             repo_fixtures_path: {
                 let mut repo_fixtures_subpath = {
@@ -227,8 +230,7 @@ impl Scene {
                 if let Some(ref fixtroot_fixture_subpath) = builder.fixtroot_fixture_subpath {
                     repo_fixtures_subpath.push(fixtroot_fixture_subpath);
                 };
-                
-                PathBuf::from(AtPath::from_path_owned(repo_fixtures_subpath).root_dir_resolved())
+                AtPath::from_path_owned(repo_fixtures_subpath).root_dir_resolved().map(|x| PathBuf::from(x))
             },
             subcmd_args: {
                 let mut result = if let Some(ref subcmd_args) = builder.subcmd_args {
