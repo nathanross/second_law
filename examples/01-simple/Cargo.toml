@@ -4,5 +4,5 @@ version = "0.1.0"
 authors = ["Nathan Ross <nross.se@gmail.com>"]
 
 [dev-dependencies]
-second_law = "0.2"
+second_law = "0.3"
 stainless = "0.1"
