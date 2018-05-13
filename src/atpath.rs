@@ -63,7 +63,7 @@ impl<'at> AtPath<'at> {
             let mut unprefixed = PathBuf::new();
             for component in prefixed.components()
                                      .skip(self.subdir.components().count()) {
-                unprefixed.push(component.as_ref().to_str().unwrap());
+                unprefixed.push(component);
             }
             unprefixed
         } else {
